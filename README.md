@@ -6,13 +6,15 @@
 
 ## 更新资源库
 
-下载原作者最新数据库，覆盖本地：
+下载最新数据库：
 
 ```
-https://github.com/realcwj/123Pan-Unlimited-Share/releases/tag/database
+https://github.com/ldohgfsdu/M1racle-123pan-share/releases/tag/database
 ```
 
 `PAN123DATABASE.latest.db` → 改名 `PAN123DATABASE.db` → 覆盖 WebDAV 目录 → 重启 `main.exe`
+
+> 原作者的原始数据库：[realcwj/123Pan-Unlimited-Share](https://github.com/realcwj/123Pan-Unlimited-Share/releases/tag/database)
 
 ## 自己加资源
 
