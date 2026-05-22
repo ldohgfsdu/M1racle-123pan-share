@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>123云盘分享工具 - 123FastLink格式互转 - GitHub@realcwj</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .result-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: var(--border-radius-elements);
+            background-color: #f9f9f9;
+        }
+        .result-item h6 {
+            color: var(--primary-dark-blue);
+            margin-bottom: 10px;
+        }
+        .textarea-result {
+            font-family: 'Consolas', 'Monaco', 'Lucida Console', monospace;
+            white-space: pre;
+            word-break: break-all;
+            font-size: 0.9em;
+        }
+
+        /* 修复 btn-info 悬停颜色问题 */
+        .btn.btn-info.custom-btn:hover,
+        .btn.btn-info.custom-btn:focus {
+            background-color: #0a58ca; /* Bootstrap 5 .btn-info hover color */
+            border-color: #0a53be;   /* Bootstrap 5 .btn-info hover border color */
+            color: white; /* 确保文字是白色 */
+        }
+        .btn.btn-info.custom-btn:active {
+             background-color: var(--button-active-green) !important; /* 统一使用激活绿色 */
+             border-color: var(--button-active-green-border) !important;
+             color: white !important;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container main-container">
+        <div class="blur-backdrop"></div>
+        <div class="content-card shadow">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="card-title">123FastLink格式互转</h2>
+                <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-secondary">返回首页</a>
+            </div>
+
+            <ul class="nav nav-tabs mt-4 mb-0" id="transformTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="toFastLink-tab" data-bs-toggle="tab" data-bs-target="#toFastLinkContent" type="button" role="tab" aria-controls="toFastLinkContent" aria-selected="true">123share 转 123FastLink</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="fromFastLink-tab" data-bs-toggle="tab" data-bs-target="#fromFastLinkContent" type="button" role="tab" aria-controls="fromFastLinkContent" aria-selected="false">123FastLink 转 123share</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="transformTabsContent">
+                <!-- Tab 1: 123share 转 123FastLink -->
+                <div class="tab-pane fade show active" id="toFastLinkContent" role="tabpanel" aria-labelledby="toFastLink-tab">
+                    <form id="toFastLinkForm">
+                        <div class="mb-3 mt-3">
+                             <input type="file" id="toFL_shareFileInput" accept=".123share" style="display: none;">
+                            <button type="button" id="toFL_selectShareFileButton" class="btn btn-primary custom-btn w-100" style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
+                                <i class="bi bi-file-earmark-arrow-up me-2"></i>
+                                选择 .123share 文件
+                            </button>
+                            <div class="form-text">选择文件后，会自动填充下方的“长分享码”和“根目录名”。</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="toFL_rootFolderName" class="form-label">根目录名 (commonPath)</label>
+                            <input type="text" class="form-control" id="toFL_rootFolderName" name="toFL_rootFolderName" required placeholder="例如：我的动画合集">
+                            <div class="form-text">此名称将作为123FastLink JSON中的 `commonPath`。</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="toFL_shareCode" class="form-label">123share 长分享码 (Base64)</label>
+                            <textarea class="form-control" id="toFL_shareCode" name="toFL_shareCode" rows="5" required placeholder="粘贴 .123share 文件内容"></textarea>
+                        </div>
+                        <button type="submit" id="startToFastLinkTransformBtn" class="btn btn-primary custom-btn w-100">
+                            <i class="bi bi-gear"></i>开始转换
+                        </button>
+                    </form>
+                    <div id="toFastLinkResultArea" class="mt-4" style="display: none;">
+                        <h5 class="mb-3">转换结果:</h5>
+                        <div id="toFastLinkStatusMessage" class="alert" style="display: none;"></div>
+                        <textarea id="toFastLinkJsonOutput" class="form-control textarea-result" rows="10" readonly></textarea>
+                        <div id="toFastLinkActionButtons" class="action-button-row mt-2" style="display: none;">
+                            <button id="toFL_copyJsonBtn" type="button" class="btn btn-secondary custom-btn">
+                                <i class="bi bi-clipboard me-2"></i>复制数据
+                            </button>
+                            <button id="toFL_downloadJsonBtn" type="button" class="btn btn-primary custom-btn">
+                                <i class="bi bi-file-earmark-arrow-down me-2"></i>下载文件
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: 123FastLink 转 123share -->
+                <div class="tab-pane fade" id="fromFastLinkContent" role="tabpanel" aria-labelledby="fromFastLink-tab">
+                    <form id="fromFastLinkForm">
+                         <div class="mb-3 mt-3">
+                             <input type="file" id="fromFL_jsonFileInput" accept=".json" style="display: none;">
+                            <button type="button" id="fromFL_selectJsonFileButton" class="btn btn-primary custom-btn w-100" style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
+                                <i class="bi bi-file-earmark-arrow-up me-2"></i>
+                                选择 .json 文件 (123FastLink格式)
+                            </button>
+                            <div class="form-text">选择文件后，会自动解析 `commonPath` 填入“根目录名”，并将JSON内容填入下方。</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="fromFL_rootFolderName" class="form-label">根目录名 (分享名)</label>
+                            <input type="text" class="form-control" id="fromFL_rootFolderName" name="fromFL_rootFolderName" placeholder="例如：我的电影收藏 (可选)">
+                             <div class="form-text">如果JSON文件指定了 `commonPath`，此处会自动填充。</div>
+                             <div class="form-text">若您选择的Json文件内没有 `commonPath` (通常意味着包含多个独立的文件/文件夹分组)，本项将为空。你需要手动填写一个总的分享名，否则将分别针对每个独立分组生成 `*.123share` 文件及分享名。</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="fromFL_jsonData" class="form-label">123FastLink Json数据</label>
+                            <textarea class="form-control" id="fromFL_jsonData" name="fromFL_jsonData" rows="8" required placeholder="粘贴123FastLink格式的JSON内容"></textarea>
+                        </div>
+                         <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="fromFL_generateShortCode" name="generateShortCode">
+                            <label class="form-check-label" for="fromFL_generateShortCode">生成短分享码</label>
+                            <div class="form-text">勾选后，<b>本站将会为每个生成的123share转换结果存储数据</b>，从而生成对应的短分享码。</div>
+                            <div class="form-text">保存的数据是否对公众可见，取决于您是否勾选下方的“加入资源共享计划”。</div>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="fromFL_shareProject" name="shareProject">
+                            <label class="form-check-label" for="fromFL_shareProject">加入资源共享计划</label>
+                            <div class="form-text">勾选后，每个转换生成的分享资源都将提交审核，通过后会对所有用户公开可见。</div>
+                            <div class="form-text">勾选本项将强制勾选“生成短分享码”。如果 `根目录名` 为空且JSON产生多个分享，则每个分享都需审核。</div>
+                        </div>
+                        <button type="submit" id="startFromFastLinkTransformBtn" class="btn btn-primary custom-btn w-100">
+                            <i class="bi bi-gear"></i>开始转换
+                        </button>
+                    </form>
+                     <div id="fromFastLinkResultArea" class="mt-4" style="display: none;">
+                        <h5 class="mb-3">转换结果:</h5>
+                        <div id="fromFastLinkStatusMessage" class="alert" style="display: none;"></div>
+                        <div id="fromFastLinkOutputContainer">
+                            <!-- 多个结果将动态添加到这里 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.APP_CONFIG = {
+            apiToFastLinkUrl: "{{ url_for('api_transform_to_123fastlink_json_route') }}",
+            apiFromFastLinkUrl: "{{ url_for('api_transform_from_123fastlink_json_route') }}",
+            banIpEnabled: {{ BAN_IP_ENABLED | tojson }}
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/uiUtils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/transformPage.js') }}"></script>
+</body>
+</html>

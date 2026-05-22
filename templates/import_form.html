@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>123云盘无限制分享工具 - 导入到私人网盘 - GitHub@realcwj</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* 为目录树中的勾选框和行项目添加一些样式 */
+        .tree-line-item {
+            display: flex; /* 使用 flex 布局使勾选框和文本对齐 */
+            align-items: center; /* 垂直居中对齐 */
+            padding: 2px 5px; /* 微调 padding */
+            white-space: pre; 
+            word-break: break-all; 
+            border-bottom: 1px dotted #eee; 
+            cursor: default; /* 默认光标，有勾选框的行不需要手型指针 */
+        }
+        .tree-line-item:last-child {
+            border-bottom: none;
+        }
+        .tree-item-checkbox {
+             margin-right: 8px; /* 勾选框与文本的间距 */
+            flex-shrink: 0; /* 防止勾选框被压缩 */
+        }
+        
+        /* 确保新增的按钮与现有按钮样式和大小一致 */
+        .modal-footer .btn, #selectFilesToggleBtn, #filterButtonsContainer .btn {
+             padding: 0.375rem 0.75rem; /* Bootstrap 默认 .btn-sm padding */
+             font-size: 0.875rem;    /* Bootstrap 默认 .btn-sm font-size */
+             line-height: 1.5;
+             /* custom-btn 样式已在 style.css 中定义 */
+        }
+
+        #filterButtonsContainer {
+            display: none; /* 初始隐藏, JS控制 */
+            gap: 0.5rem; /* 按钮之间的间距 */
+            margin-bottom: 1rem; /* 与下方目录树的间距 */
+            flex-wrap: wrap; /* 允许按钮换行*/
+        }
+        #filterButtonsContainer .btn {
+            flex-grow: 1; /*让按钮在空间足够时等宽填充*/
+            margin: 0 !important; /*覆盖 custom-btn 的 margin-top*/
+             min-width: 120px; /* 给按钮一个最小宽度，防止在窄屏过度压缩 */
+        }
+        /* 公共资源列表项中显示已选ID的样式 */
+        .selected-filter-ids-display {
+            font-size: 0.75em;
+            color: white;
+            margin-top: 2px;
+            display: block; /* 确保换行 */
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container main-container">
+        <div class="blur-backdrop"></div>
+        <div class="content-card shadow">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                 <h2 class="card-title">导入到私人网盘</h2>
+                <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-secondary">返回首页</a>
+            </div>
+
+            <form id="importForm">
+                <div class="mb-3">
+                    <label for="username" class="form-label">账号</label>
+                    <input type="text" class="form-control" id="username" name="username" required>
+                    <div class="form-text">123云盘绑定的手机号/邮箱</div>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">密码</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                    <div class="form-text">123云盘的登录密码</div>
+                    <div class="form-text"><b>您的账号、密码只在浏览器本地保存</b>（依然担心隐私风险? 推荐 <a href="https://github.com/realcwj/123Pan-Unlimited-Share?tab=readme-ov-file#%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8" target="_blank">本地部署</a>）</div>
+                </div>
+                
+                <ul class="nav nav-tabs mt-4 mb-0" id="importTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="public-repo-tab" data-bs-toggle="tab" data-bs-target="#publicRepoContent" type="button" role="tab" aria-controls="publicRepoContent" aria-selected="true">从公共资源库导入</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="short-code-tab" data-bs-toggle="tab" data-bs-target="#shortCodeContent" type="button" role="tab" aria-controls="shortCodeContent" aria-selected="false">从短分享码导入</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="long-code-tab" data-bs-toggle="tab" data-bs-target="#longCodeContent" type="button" role="tab" aria-controls="longCodeContent" aria-selected="false">从长分享码/文件导入</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="importTabsContent">
+                    <div class="tab-pane fade show active" id="publicRepoContent" role="tabpanel" aria-labelledby="public-repo-tab">
+                        <p class="mt-2"><strong>公共资源库</strong></p>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" id="publicShareSearch" placeholder="搜索公共资源名称...">
+                        </div>
+                        <div id="publicSharesListContainer">
+                            <div id="publicSharesListActual">
+                                <p class="text-muted text-center">正在加载公共资源列表...</p>
+                            </div>
+                        </div>
+                        <small class="form-text">点击上方列表中的资源名称即可选中资源，然后点击下方“开始导入”按钮。</small>
+                        <input type="hidden" id="selectedPublicCodeHash" name="selectedPublicCodeHash">
+                        <input type="hidden" id="selectedPublicRootName" name="selectedPublicRootName">
+                    </div>
+
+                    <div class="tab-pane fade" id="shortCodeContent" role="tabpanel" aria-labelledby="short-code-tab">
+                        <div class="mb-3 mt-3">
+                            <label for="shortCodeInput" class="form-label">短分享码</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="shortCodeInput" name="shortCodeInput" placeholder="粘贴短分享码">
+                                <button class="btn view-content-tree-btn" type="button" id="viewTreeForShortCodeBtn" title="查看目录结构">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                            <div class="form-text">由本站生成的短分享码。</div>
+                            <div class="form-text"><b>注意：不同网站生成的短分享码数据不互通</b></div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="longCodeContent" role="tabpanel" aria-labelledby="long-code-tab">
+                        <div class="mb-3">
+                            <input type="file" id="shareFileInput" accept=".123share" style="display: none;">
+                            <button type="button" id="selectShareFileButton" class="btn btn-primary custom-btn w-100" style="margin-top: 0.5rem; margin-bottom: 0.5rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-arrow-up me-2" viewBox="0 0 16 16">
+                                  <path d="M8.5 11.5a.5.5 0 0 1-1 0V7.707L6.354 8.854a.5.5 0 1 1-.708-.708l2-2a.5.5 0 0 1 .708 0l2 2a.5.5 0 0 1-.708.708L8.5 7.707z"/>
+                                  <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5z"/>
+                                </svg>
+                                选择 .123share 文件
+                            </button>
+                            <div class="form-text">选择文件后，会自动填充下方的“长分享码”和“根目录名”。</div>
+                        </div>
+                       <div class="mb-3 mt-3">
+                            <label for="longBase64DataInput" class="form-label">长分享码 (Base64)</label>
+                            <textarea class="form-control" id="longBase64DataInput" name="longBase64DataInput" rows="4" placeholder="粘贴完整的分享码内容 (即 *.123share 文件里的内容)"></textarea>
+                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                <small class="form-text text-muted mb-0 flex-grow-1">即 <code>*.123share</code> 文件的内容。</small>
+                                <button type="button" class="btn view-content-tree-btn ms-2" id="viewTreeForLongCodeBtn" title="查看目录结构">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="longRootFolderNameInput" class="form-label">根目录名</label>
+                            <input type="text" class="form-control" id="longRootFolderNameInput" name="longRootFolderNameInput" placeholder="例如: XX电影">
+                            <div class="form-text">导入时在123云盘中创建的根目录文件夹名。</div>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="importShareProject" name="importShareProject">
+                            <label class="form-check-label" for="importShareProject">加入资源共享计划</label>
+                            <div class="form-text">勾选后，您本次分享的资源将提交审核，通过后会对所有用户公开可见。</div>
+                            <div class="form-text">勾选本项将强制要求填写“根目录名 (分享名)”。</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-text mt-3">提示：导入文件数量较多时，速度会比较慢，请耐心等待。</div>
+                <button type="submit" id="startImportBtn" class="btn btn-primary custom-btn w-100 mt-3">
+                    <i class="bi bi-cloud-arrow-up"></i>开始导入
+                </button> 
+            </form>
+
+            <div id="resultArea" class="mt-4" style="display: none;">
+                <h5 class="mb-3">当前状态:</h5>
+                <div id="statusMessage" class="alert"></div>
+                <h5 class="mt-3">操作日志:</h5>
+                <pre id="logOutput" class="console-output p-3 rounded" style="max-height: 300px; overflow-y: auto;"></pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="contentTreeModal" tabindex="-1" aria-labelledby="contentTreeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="contentTreeModalLabel">查看文件目录结构</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- “选择部分文件导入”按钮，初始时可见 -->
+                    <button type="button" class="btn btn-sm btn-outline-primary custom-btn mb-3" id="selectFilesToggleBtn" style="display: block;"> 
+                        <i class="bi bi-check-all"></i>选择部分文件导入
+                    </button>
+                    
+                    <!-- 按类型勾选按钮容器，初始时隐藏，使用 flex 布局 -->
+                    <div id="filterButtonsContainer" class="action-button-row mb-3" style="display: none;">
+                        <button type="button" class="btn btn-sm btn-info custom-btn" id="selectAllImagesBtn">
+                            <i class="bi bi-file-earmark-image"></i>勾选所有图片
+                        </button>
+                        <button type="button" class="btn btn-sm btn-info custom-btn" id="selectAllVideosBtn">
+                            <i class="bi bi-file-earmark-play"></i>勾选所有视频
+                        </button>
+                        <button type="button" class="btn btn-sm btn-info custom-btn" id="selectAllAudiosBtn">
+                            <i class="bi bi-file-earmark-music"></i>勾选所有音乐
+                        </button>
+                        <button type="button" class="btn btn-sm btn-info custom-btn" id="selectAllArchivesBtn">
+                            <i class="bi bi-file-earmark-zip"></i>勾选所有压缩包
+                        </button>
+                    </div>
+
+                    <div class="mb-3">
+                        <input type="text" class="form-control form-control-sm" id="contentTreeSearchInput" placeholder="搜索文件名...">
+                    </div>
+                    <div id="contentTreeDisplayArea">
+                        <!-- 目录树将在此处渲染 -->
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between"> <!-- 使用 d-flex 和 justify-content-between -->
+                    <div> <!-- 用于包裹左侧按钮 -->
+                        <!-- “确认勾选”按钮，初始时隐藏, 靠左 -->
+                        <button type="button" class="btn btn-sm btn-success custom-btn" id="confirmSelectionBtn" style="display: none;"> 
+                            <i class="bi bi-floppy"></i>确认勾选
+                        </button>
+                    </div>
+                    <div> <!-- 用于包裹右侧按钮 -->
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.APP_CONFIG = {
+            apiImportUrl: "{{ url_for('api_import_route') }}",
+            apiListPublicSharesUrl: "{{ url_for('api_list_public_shares_route') }}",
+            apiGetContentTreeUrl: "{{ url_for('api_get_content_tree_route') }}",
+            apiSearchDatabaseUrl: "{{ url_for('api_search_database_route') }}",
+            banIpEnabled: {{ BAN_IP_ENABLED | tojson }}
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/cookieUtils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/uiUtils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/streamApiHandler.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/importPage.js') }}"></script>
+</body>
+</html>

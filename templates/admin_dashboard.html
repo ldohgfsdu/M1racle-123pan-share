@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理后台 - 123云盘分享</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* 特定于 Admin Dashboard 页面的样式调整 */
+        body {
+            /* style.css 中已定义基础背景和字体，这里确保padding和对齐方式 */
+            padding: 20px;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-dashboard-main-container {
+            max-width: 1200px; /* 为管理员表格提供更宽的布局 */
+            width: 95%; /* 在非常大的屏幕上也不会过宽 */
+        }
+        
+        .admin-dashboard-content-card {
+            /* content-card 的基础样式由 style.css 提供 */
+            /* 这里可以添加或覆盖特定样式，例如更大的padding */
+            padding: 25px 30px;
+        }
+
+        .admin-navbar {
+            background-color: transparent !important; /* Navbar 背景透明，融入卡片 */
+            border-bottom: 1px solid var(--border-color, #dee2e6); /* Navbar 底部细线分隔 */
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+        
+        .admin-navbar .navbar-brand {
+            color: var(--primary-dark-blue); /* 品牌文字颜色 */
+            font-weight: bold;
+        }
+
+        .admin-navbar .navbar-nav .nav-link,
+        .admin-navbar .navbar-text {
+            color: var(--text-color, #333) !important; /* 导航链接和文本颜色 */
+        }
+        
+        .admin-navbar .navbar-nav .btn { /* 包含了新增的更新数据库按钮 */
+            border-color: var(--primary-dark-blue);
+            color: var(--primary-dark-blue);
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .admin-navbar .navbar-nav .btn:hover {
+            background-color: var(--primary-dark-blue);
+            color: white;
+        }
+        /* 更新数据库按钮的特定样式 (如果需要区别于其他按钮) */
+        .admin-navbar .navbar-nav .btn-warning { /* 比如用 warning 颜色 */
+            border-color: #ffc107;
+            color: #000; /* 确保文字在黄色背景上可读 */
+             background-color: #ffc107;
+        }
+         .admin-navbar .navbar-nav .btn-warning:hover {
+            background-color: #e0a800;
+            border-color: #d39e00;
+            color: #000;
+        }
+
+        .nav-pills .nav-link { 
+            color: var(--primary-dark-blue);
+            font-weight: 500;
+        }
+        .nav-pills .nav-link.active {
+            background-color: var(--primary-dark-blue);
+            color: white;
+        }
+        .nav-pills .nav-link:not(.active):hover {
+            background-color: var(--standard-light-gray-hover);
+        }
+
+        .table th, .table td {
+            vertical-align: middle;
+            font-size: 0.85rem;
+            word-break: break-all; 
+        }
+        .table td .form-control-sm {
+            font-size: 0.85rem; 
+        }
+        .codehash-cell {
+            min-width: 200px; 
+            max-width: 280px;
+            overflow-wrap: break-word;
+        }
+        .root-folder-name-cell {
+            min-width: 150px;
+             max-width: 250px;
+            overflow-wrap: break-word;
+        }
+        .share-code-cell {
+            max-width: 180px; 
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: pointer; 
+        }
+         .share-code-cell .view-full-code:hover {
+            text-decoration: underline;
+            color: var(--primary-dark-blue);
+        }
+        .action-buttons .btn {
+            margin-right: 0.3rem;
+            margin-bottom: 0.3rem; 
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            border-radius: var(--border-radius-elements, 10px); /* 统一圆角 */
+        }
+        .action-buttons .btn-outline-secondary { /* 查看目录按钮 */
+            color: #6c757d;
+            border-color: #6c757d;
+        }
+         .action-buttons .btn-outline-secondary:hover {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .status-badge {
+            font-size: 0.8em;
+            padding: 0.4em 0.6em;
+        }
+        .edit-input-group {
+            display: flex;
+            align-items: center;
+        }
+        .edit-input-group input {
+            flex-grow: 1;
+            margin-right: 5px;
+            border-radius: var(--border-radius-elements);
+        }
+        
+        .page-title-container { /* 用于包裹页面标题和可能的副标题/帮助链接 */
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .page-title-container .card-title {
+             margin-bottom: 0.5rem; /* 减小标题和下方元素的间距 */
+        }
+
+        .table-responsive {
+            margin-top: 1rem;
+            max-height: 60vh; /* 限制表格区域最大高度，使其可滚动 */
+            overflow-y: auto;
+            border: 1px solid var(--border-color, #dee2e6);
+            border-radius: var(--border-radius-elements);
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container admin-dashboard-main-container">
+        <div class="blur-backdrop"></div>
+        <div class="content-card shadow admin-dashboard-content-card">
+            <nav class="navbar navbar-expand-lg navbar-light mb-4 admin-navbar">
+                <div class="container-fluid">
+                    <a class="navbar-brand" href="{{ url_for('admin_dashboard_page') }}">管理后台</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbar" aria-controls="adminNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="adminNavbar">
+                        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+                            <li class="nav-item">
+                                <span class="navbar-text me-3">
+                                    欢迎, {{ admin_username or '管理员' }}
+                                </span>
+                            </li>
+                            <li class="nav-item me-2"> <!-- 新增 me-2 用于按钮间距 -->
+                                <button class="btn btn-sm btn-warning" id="updateDatabaseBtn">
+                                    <i class="bi bi-arrow-clockwise"></i>更新数据库
+                                </button>
+                            </li>
+                            <li class="nav-item">
+                                <a class="btn btn-sm btn-outline-primary me-2" href="{{ url_for('admin_logout') }}">安全退出</a>
+                            </li>
+                             <li class="nav-item">
+                                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('index') }}">用户首页</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <ul class="nav nav-pills mb-3 justify-content-center" id="adminTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="approved-tab" data-bs-toggle="tab" data-bs-target="#approved-content" type="button" role="tab">已审核</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending-content" type="button" role="tab">待审核</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="private-tab" data-bs-toggle="tab" data-bs-target="#private-content" type="button" role="tab">私密分享</button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="adminTabsContent">
+                <div class="tab-pane fade show active" id="approved-content" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th class="codehash-cell">短分享码 (Hash)</th>
+                                    <th class="root-folder-name-cell">分享名称</th>
+                                    <th class="share-code-cell">长分享码</th>
+                                    <th>分享时间</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="approved-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="pending-content" role="tabpanel">
+                    <div class="table-responsive">
+                         <table class="table table-striped table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th class="codehash-cell">短分享码 (Hash)</th>
+                                    <th class="root-folder-name-cell">分享名称</th>
+                                    <th class="share-code-cell">长分享码</th>
+                                    <th>分享时间</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pending-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="tab-pane fade" id="private-content" role="tabpanel">
+                    <div class="table-responsive">
+                         <table class="table table-striped table-hover table-bordered">
+                            <thead>
+                                <tr>
+                                    <th class="codehash-cell">短分享码 (Hash)</th>
+                                    <th class="root-folder-name-cell">分享名称</th>
+                                    <th class="share-code-cell">长分享码</th>
+                                    <th>分享时间</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="private-table-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 查看完整长分享码模态框 -->
+    <div class="modal fade" id="viewShareCodeModal" tabindex="-1" aria-labelledby="viewShareCodeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewShareCodeModalLabel">查看完整长分享码</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>对应短码 (Hash):</strong> <span id="modalCodeHashDisplay"></span></p> <!-- 修改ID避免与JS变量冲突 -->
+                    <textarea id="modalShareCodeContent" rows="10" readonly class="form-control" style="font-family: monospace; white-space: pre;"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="copyModalShareCode">复制到剪贴板</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 查看内容目录树模态框 (从 import_form.html 移植) -->
+    <div class="modal fade" id="contentTreeModal" tabindex="-1" aria-labelledby="contentTreeModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="contentTreeModalLabelAdmin">查看文件目录结构</h5> <!-- 修改ID避免冲突 -->
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <input type="text" class="form-control form-control-sm" id="contentTreeSearchInputAdmin" placeholder="搜索文件名..."> <!-- 修改ID -->
+                    </div>
+                    <div id="contentTreeDisplayAreaAdmin"> <!-- 修改ID -->
+                        <!-- 目录树将在此处渲染 -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 将Flask变量传递给JavaScript
+        window.APP_CONFIG = {
+            adminApiBaseUrl: `/api/{{ admin_entry }}`,
+            apiGetContentTreeUrl: "{{ url_for('api_get_content_tree_route') }}" // 新增获取目录树API的URL
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/uiUtils.js') }}"></script> 
+    <script src="{{ url_for('static', filename='js/adminDashboardPage.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,468 @@
+/* static/css/style.css */
+
+:root {
+    --background-blue: #e6f7ff; 
+    --card-background: rgba(255, 255, 255, 0.9); 
+    --primary-dark-blue: #0056b3; /* 主要深蓝色, “开始导入”按钮默认背景 */
+    --primary-dark-blue-hover: #004494; /* 主要深蓝色悬停, “开始导入”按钮悬停背景 */
+    --button-active-green: #198754; 
+    --button-active-green-border: #146c43; 
+    --button-active-green-shadow: rgba(25, 135, 84, 0.3); 
+    --text-color: #333;
+    --border-color: #b0dfff; 
+    --card-shadow: 0 10px 30px rgba(0, 70, 120, 0.15); 
+    --input-focus-shadow: rgba(0, 86, 179, 0.25);
+    --border-radius-card: 20px; 
+    --border-radius-elements: 10px; 
+    --standard-light-gray-hover: #e9ecef; /* 标准1: 未选中资源悬停时的浅灰色，也用于Tab和返回按钮悬停 */
+}
+
+body {
+    background-color: var(--background-blue);
+    font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 15px; 
+    box-sizing: border-box; 
+    overflow-x: hidden;
+}
+
+.main-container {
+    position: relative;
+    max-width: 650px; /* 默认最大宽度，管理员页面会覆盖此值 */
+    width: 100%;
+    padding: 0; 
+    margin: auto 0; 
+}
+
+.blur-backdrop {
+    position: absolute;
+    top: -15px;
+    left: -15px;
+    right: -15px;
+    bottom: -15px;
+    background-image: linear-gradient(to bottom right, var(--background-blue), #cceeff); 
+    filter: blur(20px); 
+    -webkit-filter: blur(20px);
+    border-radius: calc(var(--border-radius-card) + 5px); 
+    z-index: 1;
+    opacity: 0.8;
+}
+
+.content-card {
+    background-color: var(--card-background);
+    padding: 35px 45px; 
+    border-radius: var(--border-radius-card);
+    box-shadow: var(--card-shadow);
+    position: relative;
+    z-index: 2;
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(5px); 
+    -webkit-backdrop-filter: blur(5px);
+    width: 100%; 
+    box-sizing: border-box;
+}
+
+.card-title {
+    color: var(--primary-dark-blue);
+    font-weight: 700; 
+    text-align: center; 
+    margin-bottom: 1.8rem; 
+}
+
+.form-label {
+    font-weight: 500;
+    color: var(--text-color);
+    margin-bottom: 0.75rem; 
+}
+
+.form-control {
+    border-radius: var(--border-radius-elements);
+    border: 1px solid var(--border-color);
+    padding: 0.9rem 1.2rem; 
+    background-color: #fff; 
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: var(--primary-dark-blue);
+    box-shadow: 0 0 0 0.25rem var(--input-focus-shadow);
+    background-color: #fff; 
+}
+
+.form-text {
+    font-size: 0.875em;
+    color: #555;
+    margin-top: 0.5rem; 
+}
+
+.index-buttons .btn {
+    margin-bottom: 1rem; 
+}
+
+.custom-btn, .view-content-tree-btn {
+    color: white;
+    padding: 0.9rem 1.5rem; 
+    font-size: 1.05rem;
+    font-weight: 500;
+    border-radius: var(--border-radius-elements);
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease, box-shadow 0.15s ease, color 0.2s ease; /* 添加 color 过渡 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-btn {
+    background-color: var(--primary-dark-blue);
+    border-color: var(--primary-dark-blue);
+    margin-top: 1.5rem; 
+    color: white; /* 确保初始文字颜色 */
+}
+.custom-btn.w-100 { 
+    width: 100%;
+}
+/* 所有 custom-btn (包括不同颜色变体如 btn-info, btn-secondary) 的通用悬停和激活效果 */
+.custom-btn:hover, .custom-btn:focus {
+    background-color: var(--primary-dark-blue-hover) !important; /* 统一悬停背景为主题深蓝悬停色 */
+    border-color: var(--primary-dark-blue-hover) !important;   /* 统一悬停边框 */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 68, 148, 0.3); /* 统一阴影 */
+    color: white !important; /* 确保悬停和聚焦时文字颜色 */
+}
+.custom-btn:active {
+    background-color: var(--button-active-green) !important; 
+    border-color: var(--button-active-green-border) !important; 
+    transform: translateY(0);
+    box-shadow: 0 3px 6px var(--button-active-green-shadow) !important;
+    color: white !important; /* 确保激活时文字颜色 */
+}
+
+.custom-btn:disabled,
+.custom-btn.disabled { /* 同时处理属性和类名的情况 */
+    background-color: var(--primary-dark-blue) !important; /* 默认禁用时恢复为初始深蓝色 */
+    border-color: var(--primary-dark-blue) !important;
+    color: rgba(255, 255, 255, 0.65) !important; /* 文字颜色可以略微变淡 */
+    opacity: 0.65; /* Bootstrap 默认的禁用透明度 */
+    /* 移除 transform 和 box-shadow，因为禁用时不应有交互效果 */
+    transform: none !important;
+    box-shadow: none !important;
+    cursor: not-allowed;
+}
+
+.custom-btn .bi {
+    margin-right: 0.3em;
+}
+
+/* 特定颜色按钮 (.btn-info, .btn-secondary) 与 .custom-btn 结合时的初始样式 */
+/* .btn-info 本身会带来 Bootstrap 的初始颜色，我们只确保文字是白的 */
+.btn.btn-info.custom-btn {
+    /* 初始背景和边框由Bootstrap的.btn-info提供，例如 #0dcaf0 */
+    color: white !important; 
+}
+/* .btn-secondary 本身会带来 Bootstrap 的初始颜色，我们只确保文字是白的 */
+.btn.btn-secondary.custom-btn {
+    /* 初始背景和边框由Bootstrap的.btn-secondary提供，例如 #6c757d */
+    color: white !important;
+}
+
+/* 由于上面的 .custom-btn:hover 已经用了 !important, 
+   所以 .btn-info.custom-btn:hover 会自动继承那个样式。
+   之前的 .btn.btn-info.custom-btn:hover 特殊处理可以移除了，除非希望它有不同的悬停颜色。
+   为了统一，我们让所有 .custom-btn （无论初始是什么颜色）悬停时都变成 var(--primary-dark-blue-hover)
+*/
+/* 
+   移除以下部分，因为通用 .custom-btn:hover 已经处理了：
+    .btn.btn-info.custom-btn:hover,
+    .btn.btn-info.custom-btn:focus {
+        background-color: #0a58ca; 
+        border-color: #0a53be;   
+        color: white !important; 
+    }
+*/
+
+.view-content-tree-btn { 
+    background-color: var(--primary-dark-blue); 
+    border: 1px solid var(--primary-dark-blue); 
+    padding: 0.375rem 0.75rem; 
+    font-size: 1rem; 
+    line-height: 1.5; 
+    color: white; /* 确保文字颜色 */
+}
+.view-content-tree-btn:hover, .view-content-tree-btn:focus {
+    background-color: var(--primary-dark-blue-hover); 
+    border-color: var(--primary-dark-blue-hover);
+    color: white; 
+}
+.view-content-tree-btn:active {
+    background-color: var(--button-active-green) !important; 
+    border-color: var(--button-active-green-border) !important;
+    color: white !important; 
+    box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125); 
+}
+.public-share-item .view-content-tree-btn { 
+    padding: 0.2rem 0.4rem; 
+    font-size: 0.8rem; 
+    line-height: 1;
+}
+
+.alert {
+    border-radius: var(--border-radius-elements);
+    margin-top: 1.5rem; 
+    padding: 1rem 1.25rem; 
+}
+
+.form-group, .mb-3 { 
+    margin-bottom: 1.75rem !important; 
+}
+
+.console-output {
+    background-color: #f0f0f0; 
+    color: #333; 
+    border: 1px solid var(--border-color, #ced4da);
+    padding: 15px;
+    border-radius: var(--border-radius-elements, 10px);
+    white-space: pre-wrap;       
+    word-break: break-all;       
+    max-height: 400px;           
+    overflow-y: auto;            
+    font-family: 'Consolas', 'Monaco', 'Lucida Console', monospace; 
+    font-size: 0.85em;           
+    line-height: 1.5;
+    text-align: left;            
+}
+
+.action-button-row {
+    display: flex;
+    gap: 10px; 
+    margin-top: 1.5rem; 
+}
+
+.action-button-row .btn {
+    flex-grow: 1; 
+    margin-top: 0 !important; 
+}
+
+.nav-tabs .nav-link {
+    border-top-left-radius: var(--border-radius-elements);
+    border-top-right-radius: var(--border-radius-elements);
+    color: var(--primary-dark-blue); 
+    font-weight: 500;
+    padding: 0.75rem 1.25rem; 
+    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out; 
+}
+.nav-tabs .nav-link.active {
+    color: #fff; 
+    background-color: var(--primary-dark-blue); 
+    border-color: var(--primary-dark-blue) var(--primary-dark-blue) var(--card-background); 
+}
+.nav-tabs .nav-link:not(.active):hover {
+    background-color: var(--standard-light-gray-hover); 
+    border-color: var(--standard-light-gray-hover) var(--standard-light-gray-hover) var(--border-color); 
+    color: var(--primary-dark-blue); 
+}
+.nav-tabs {
+    border-bottom-color: var(--border-color); 
+}
+
+.tab-content { 
+    border: 1px solid var(--border-color); 
+    border-top: 0;
+    padding: 1.5rem 1.25rem; 
+    border-bottom-left-radius: var(--border-radius-elements);
+    border-bottom-right-radius: var(--border-radius-elements);
+    background-color: var(--card-background); 
+    margin-bottom: 1rem; 
+}
+
+.public-share-item {
+    padding: 0.75rem 1rem;
+    border: 1px solid #e0e0e0;
+    border-radius: var(--border-radius-elements); 
+    margin-bottom: 0.5rem;
+    background-color: #f8f9fa; 
+    transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, color 0.15s ease-in-out;
+}
+.public-share-item:not(.active):hover {
+    background-color: var(--standard-light-gray-hover); 
+    border-color: #d0d0d0; 
+}
+.public-share-item.active { 
+    background-color: var(--primary-dark-blue); 
+    color: #fff; 
+    border-color: var(--primary-dark-blue); 
+}
+.public-share-item.active .share-name,
+.public-share-item.active .share-timestamp {
+    color: #fff; 
+}
+.public-share-item.active:hover {
+    background-color: var(--primary-dark-blue-hover); 
+    border-color: var(--primary-dark-blue-hover); 
+}
+
+.public-share-item .share-name {
+    font-weight: 500;
+    color: var(--primary-dark-blue); 
+    display: block; 
+    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+    transition: color 0.15s ease-in-out; 
+    word-wrap: break-word; 
+    white-space: normal; 
+}
+.public-share-item .share-timestamp {
+    font-size: 0.8em;
+    color: #555; 
+    transition: color 0.15s ease-in-out; 
+}
+#publicSharesListContainer { 
+    max-height: 280px;
+    overflow-y: auto;
+    overflow-x: hidden; 
+    margin-bottom: 1rem;
+    border: 1px solid #dee2e6;
+    padding: 0.75rem; 
+    border-radius: var(--border-radius-elements);
+    background-color: #fff; 
+}
+
+#contentTreeModal .modal-body, 
+.modal-dialog-scrollable .modal-body 
+{
+    padding-bottom: 0.5rem; 
+}
+#contentTreeDisplayArea, 
+#contentTreeDisplayAreaAdmin 
+{
+    max-height: calc(70vh - 150px); 
+    min-height: 200px; 
+    overflow-y: auto;
+    font-family: 'Consolas', 'Monaco', 'Lucida Console', monospace;
+    font-size: 0.8rem; 
+    color: #333;
+    background-color: #f8f9fa; 
+    border: 1px solid #dee2e6;
+    border-radius: var(--border-radius-elements);
+    padding: 0.5rem;
+}
+#contentTreeDisplayArea div, 
+#contentTreeDisplayAreaAdmin div 
+{ 
+    padding: 1px 5px; 
+    white-space: pre; 
+    word-break: break-all; 
+    border-bottom: 1px dotted #eee; 
+}
+#contentTreeDisplayArea div:last-child,
+#contentTreeDisplayAreaAdmin div:last-child 
+{
+    border-bottom: none;
+}
+
+#contentTreeSearchInput, 
+#contentTreeSearchInputAdmin 
+{
+    font-size: 0.9rem;
+}
+
+.content-card .btn.btn-sm.btn-outline-secondary:hover,
+.container.main-container > .content-card .btn.btn-sm.btn-outline-secondary:hover,
+.admin-navbar .navbar-nav .btn.btn-sm:hover
+{ 
+    background-color: var(--primary-dark-blue) !important; 
+    color: white !important; 
+    border-color: var(--primary-dark-blue) !important; 
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 10px; 
+    }
+    .content-card {
+        padding: 25px 20px; 
+        margin: 10px 0; 
+    }
+    .card-title {
+        font-size: 1.5rem; 
+        margin-bottom: 1.5rem;
+    }
+    .form-control, .custom-btn, .btn, .view-content-tree-btn { 
+        font-size: 0.95rem; 
+        padding-top: 0.8rem; 
+        padding-bottom: 0.8rem;
+    }
+    .custom-btn, .btn.custom-btn { 
+         padding-left: 1rem;
+         padding-right: 1rem;
+    }
+    .view-content-tree-btn { 
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+    .admin-dashboard-content-card .action-buttons .btn {
+        font-size: 0.75rem; 
+        padding: 0.25rem 0.5rem;
+    }
+    .form-group, .mb-3 {
+        margin-bottom: 1.25rem !important;
+    }
+    .nav-tabs .nav-link { 
+        padding: 0.6rem 1rem; 
+        font-size: 0.9rem;
+    }
+    .nav-pills .nav-link { 
+        padding: 0.5rem 0.9rem;
+        font-size: 0.85rem;
+    }
+    .tab-content {
+        padding: 1rem 0.75rem;
+    }
+    #contentTreeDisplayArea, #contentTreeDisplayAreaAdmin {
+        font-size: 0.75rem; 
+    }
+    .action-button-row { 
+        flex-direction: column;
+    }
+    .action-button-row .btn {
+        margin-bottom: 0.5rem; 
+    }
+    .action-button-row .btn:last-child {
+        margin-bottom: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .content-card {
+        padding: 20px 15px; 
+        border-radius: 15px; 
+    }
+    .card-title {
+        font-size: 1.3rem;
+    }
+    .form-label {
+        font-size: 0.9rem;
+    }
+    .form-control, .custom-btn, .btn, .view-content-tree-btn { 
+        font-size: 0.9rem;
+    }
+    .nav-tabs .nav-link { 
+        font-size: 0.85rem;
+        padding: 0.5rem 0.75rem;
+    }
+     .nav-pills .nav-link { 
+        padding: 0.4rem 0.7rem;
+        font-size: 0.8rem;
+    }
+    .custom-btn svg, .btn svg, .view-content-tree-btn svg, .view-content-tree-btn i { 
+        width: 1em;
+        height: 1em;
+    }
+    .input-group .btn, .input-group .view-content-tree-btn { 
+        font-size: 0.85rem; 
+        padding: 0.375rem 0.75rem;
+    }
+}

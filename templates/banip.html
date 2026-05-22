@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>不支持的IP地址 - 123云盘无限制分享工具</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .github-link {
+            display: inline-flex; 
+            align-items: center; 
+            color: #555; 
+            text-decoration: none; 
+            margin-bottom: 1.5rem; 
+            font-size: 0.9rem;
+        }
+        .github-link .bi-github {
+            margin-right: 8px; 
+            font-size: 1.2rem; 
+        }
+        .github-link:hover {
+            color: #000; 
+            text-decoration: underline; 
+        }
+        .banip-card-title {
+            color: var(--bs-danger) !important; /* 使用 Bootstrap 的 danger 颜色 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container main-container">
+        <div class="blur-backdrop"></div>
+        <div class="content-card shadow">
+            <h1 class="text-center mb-2 card-title banip-card-title">不支持的IP地址</h1>
+            <div class="text-center">
+                <a href="https://github.com/realcwj/123Pan-Unlimited-Share" target="_blank" class="github-link">
+                    <i class="bi bi-github"></i> @realcwj/123Pan-Unlimited-Share
+                </a>
+            </div>
+            <p class="text-center mb-4 lead" style="font-size: 1.1rem; color: var(--bs-body-color);">不支持来自中国大陆的用户使用。</p>
+            <p class="text-center text-muted" style="font-size: 0.9rem;">如您认为这是个错误，请检查您的网络环境。</p>
+
+            <div class="d-grid gap-3 index-buttons mt-4 pt-2">
+                <a href="https://ping0.cc" class="btn btn-outline-secondary custom-btn" style="background-color: transparent; border-color: var(--bs-secondary); color: var(--bs-secondary);">
+                    <i class="bi bi-question-circle me-2"></i> 查看我的IP地址
+                </a>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-secondary custom-btn" style="background-color: transparent; border-color: var(--bs-secondary); color: var(--bs-secondary);">
+                    <i class="bi bi-house me-2"></i> 尝试返回首页
+                </a>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

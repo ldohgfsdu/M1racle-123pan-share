@@ -1,0 +1,5 @@
+flask
+tqdm
+requests
+beautifulsoup4
+pyyaml

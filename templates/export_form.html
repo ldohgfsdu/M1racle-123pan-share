@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>123云盘无限制分享工具 - 从私人网盘导出 - GitHub@realcwj</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container main-container">
+        <div class="blur-backdrop"></div>
+        <div class="content-card shadow">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="card-title">从私人网盘导出</h2>
+                <a href="{{ url_for('index') }}" class="btn btn-sm btn-outline-secondary">返回首页</a>
+            </div>
+
+            <form id="exportForm">
+                <div class="mb-3">
+                    <label for="username" class="form-label">账号</label>
+                    <input type="text" class="form-control" id="username" name="username" required>
+                    <div class="form-text">123云盘绑定的手机号/邮箱</div>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">密码</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                    <div class="form-text">123云盘的登录密码</div>
+                    <div class="form-text"><b>您的账号、密码只在浏览器本地保存</b>（依然担心隐私风险? 推荐 <a href="https://github.com/realcwj/123Pan-Unlimited-Share?tab=readme-ov-file#%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8" target="_blank">本地部署</a>）</div>
+                </div>
+                <div class="mb-3">
+                    <label for="userSpecifiedBaseName" class="form-label">根目录名 (分享名)</label>
+                    <input type="text" class="form-control" id="userSpecifiedBaseName" name="userSpecifiedBaseName" placeholder="例如: 我的备份 (可选)">
+                    <div class="form-text">即分享名（其他用户导入时显示的文件夹名，以及下载的 .123share 文件名）。</div>
+                    <div class="form-text">如果留空，将使用时间戳作为文件名。若加入资源共享计划则此项必填。</div>
+                </div>
+                <div class="mb-3">
+                    <label for="homeFilePath" class="form-label">文件夹ID</label>
+                    <input type="text" class="form-control" id="homeFilePath" name="homeFilePath" value="0" required>
+                    <div class="form-text">要分享的文件夹ID，获取方式见 <a href="https://github.com/realcwj/123Pan-Unlimited-Share?tab=readme-ov-file#%E5%A6%82%E4%BD%95%E8%8E%B7%E5%8F%96-homefilepath-" target="_blank">FAQ</a>。分享整个网盘填 0。</div>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="generateShortCode" name="generateShortCode">
+                    <label class="form-check-label" for="generateShortCode">生成短分享码</label>
+                    <div class="form-text">勾选后，<b>本站将会存储导出的数据</b>，从而生成一个简短的分享码，便于分享。</div>
+                    <div class="form-text">保存的数据是否对公众可见，取决于您是否勾选下方的“加入资源共享计划”。</div>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="shareProject" name="shareProject">
+                    <label class="form-check-label" for="shareProject">加入资源共享计划</label>
+                    <div class="form-text">勾选后，您本次分享的资源将提交审核，通过后会对所有用户公开可见。</div>
+                    <div class="form-text">勾选本项将强制勾选“生成短分享码”，并且要求填写“根目录名 (分享名)”。</div>
+                </div>
+                <button type="submit" id="startExportBtn" class="btn btn-primary custom-btn w-100">
+                    <i class="bi bi-cloud-arrow-down"></i>开始导出
+                </button>
+            </form>
+
+            <div id="resultArea" class="mt-4" style="display: none;">
+                <h5 class="mb-3">当前状态:</h5>
+                <div id="statusMessage" class="alert"></div>
+                <h5 class="mt-3">操作日志:</h5>
+                <pre id="logOutput" class="console-output p-3 rounded" style="max-height: 300px; overflow-y: auto;"></pre>
+                
+                <div id="shortShareCodeArea" class="mt-3" style="display: none;">
+                    <p><strong>您的短分享码是：</strong></p>
+                    <textarea id="shortShareCodeOutput" class="form-control" rows="3" readonly></textarea>
+                </div>
+
+                <div id="longShareCodeArea" class="mt-3" style="display: none;">
+                    <p><strong>您的长分享码是：</strong></p>
+                    <textarea id="shareCodeOutput" class="form-control" rows="3" readonly></textarea>
+                </div>
+
+                <div id="actionButtonsArea" class="mt-3 action-button-row" style="display: none;">
+                    <button id="copyShortShareCodeBtn" type="button" class="btn btn-info custom-btn" style="display: none;">
+                        <i class="bi bi-clipboard"></i>复制短码
+                    </button>
+                    <button id="copyShareCodeBtn" type="button" class="btn btn-secondary custom-btn" style="display: none;">
+                        <i class="bi bi-clipboard"></i>复制长码
+                    </button>
+                    <button id="downloadShareCodeBtn" class="btn btn-primary custom-btn" style="display: none;">
+                        <i class="bi bi-file-earmark-arrow-down"></i>下载文件
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.APP_CONFIG = {
+            apiExportUrl: "{{ url_for('api_export_route') }}",
+            banIpEnabled: {{ BAN_IP_ENABLED | tojson }}
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/cookieUtils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/uiUtils.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/streamApiHandler.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/exportPage.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+/*.123share
+/*message*.json
+*test*
+PRIVATE_KEY.md
+/export
+/web.dist
+/web.build
+web.exe
+/logs
+/assets/*.db

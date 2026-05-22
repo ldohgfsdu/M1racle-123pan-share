@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>123云盘无限制分享工具 - GitHub@realcwj</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .github-link {
+            display: inline-flex; /* 使图标和文字在同一行并能垂直对齐 */
+            align-items: center; /* 垂直居中对齐图标和文字 */
+            color: #555; /* 链接颜色 */
+            text-decoration: none; /* 去除下划线 */
+            margin-bottom: 1.5rem; /* 与下方按钮的间距 */
+            font-size: 0.9rem;
+        }
+        .github-link .bi-github {
+            margin-right: 8px; /* 图标和文字之间的间距 */
+            font-size: 1.2rem; /* 图标大小 */
+        }
+        .github-link:hover {
+            color: #000; /* 鼠标悬停时颜色变深 */
+            text-decoration: underline; /* 鼠标悬停时显示下划线 */
+        }
+    </style>
+</head>
+<body>
+    <div class="container main-container">
+        <div class="blur-backdrop"></div>
+        <div class="content-card shadow">
+            <h1 class="text-center mb-2">123云盘无限制分享工具</h1>
+            <div class="text-center">
+                <a href="https://github.com/realcwj/123Pan-Unlimited-Share" target="_blank" class="github-link">
+                    <i class="bi bi-github"></i>@realcwj/123Pan-Unlimited-Share
+                </a>
+            </div>
+            <p class="text-center mb-4">请选择模式</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <div class="d-grid gap-3 index-buttons">
+                <a href="{{ url_for('export_page') }}" class="btn btn-primary custom-btn"> <i class="bi bi-box-arrow-up-right me-2"></i>从私人网盘导出
+                </a>
+                <a href="{{ url_for('import_page') }}" class="btn btn-primary custom-btn"> <i class="bi bi-box-arrow-in-down me-2"></i>导入到私人网盘
+                </a>
+                <a href="{{ url_for('link_page') }}" class="btn btn-primary custom-btn"> <i class="bi bi-link-45deg me-2"></i>从分享链接导出
+                </a>
+                <a href="{{ url_for('transform_page') }}" class="btn btn-primary custom-btn"> <i class="bi bi-arrow-repeat me-2"></i>123FastLink格式互转
+                </a>
+                <a href="https://greasyfork.org/zh-CN/scripts/537874-123%E4%BA%91%E7%9B%98%E7%A7%92%E4%BC%A0%E9%93%BE%E6%8E%A5-with-123pan-unlimited-share" class="btn btn-primary custom-btn"> <i class="bi bi-file-binary"></i>下载油猴脚本
+                </a>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        window.APP_CONFIG = {
+            banIpEnabled: {{ BAN_IP_ENABLED | tojson }} 
+        };
+    </script>
+    <script src="{{ url_for('static', filename='js/uiUtils.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async function() {
+            // 客户端侧检查IP是否为中国大陆地区
+            await checkRegionAndRedirect();
+        });
+    </script>
+</body>
+</html>
